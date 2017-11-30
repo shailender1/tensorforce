@@ -21,7 +21,7 @@ from six.moves import xrange
 import unittest
 import numpy as np
 
-from tensorforce import Configuration, util
+from tensorforce import util
 from tensorforce.agents import DQFDAgent
 from tensorforce.tests.base_agent_test import BaseAgentTest
 
@@ -31,7 +31,7 @@ class TestDQFDAgent(BaseAgentTest, unittest.TestCase):
     agent = DQFDAgent
     deterministic = True
 
-    config = Configuration(
+    kwargs = dict(
         memory=dict(
             type='replay',
             capacity=1000
@@ -48,6 +48,9 @@ class TestDQFDAgent(BaseAgentTest, unittest.TestCase):
 
     def pre_run(self, agent, environment):
         demonstrations = list()
+
+        agent.reset()
+        internals = agent.current_internals
         terminal = True
 
         for n in xrange(50):
@@ -83,7 +86,7 @@ class TestDQFDAgent(BaseAgentTest, unittest.TestCase):
                             fill_value=True,
                             dtype=util.np_dtype(action['type'])
                         )
-                    elif actions['type'] == 'int':
+                    elif action['type'] == 'int':
                         actions[name] = np.full(
                             shape=action['shape'],
                             fill_value=1,
@@ -98,7 +101,7 @@ class TestDQFDAgent(BaseAgentTest, unittest.TestCase):
 
             state, terminal, reward = environment.execute(actions=actions)
 
-            demonstration = dict(states=state, internal=[], actions=actions, terminal=terminal, reward=reward)
+            demonstration = dict(states=state, internals=internals, actions=actions, terminal=terminal, reward=reward)
             demonstrations.append(demonstration)
 
         agent.import_demonstrations(demonstrations)
